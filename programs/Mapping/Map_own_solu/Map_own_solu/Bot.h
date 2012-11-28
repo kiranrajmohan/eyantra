@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <vector> 
 using namespace std;
 
 #define UNMAPPED	0
@@ -46,10 +47,20 @@ public:
 	
 	void printDir();
 
+	XY getFront(int a,int n);
+	XY getBack(int a,int n);
+	XY getLeft(int a,int n);
+	XY getRight(int a,int n); 
+
 	XY getFront();
 	XY getBack();
 	XY getLeft();
 	XY getRight(); 
+
+	bool checkFront(int a,int n);
+	bool checkBack(int a,int n);
+	bool checkLeft(int a,int n);
+	bool checkRight(int a,int n);
 
 	bool checkFront();
 	bool checkBack();
@@ -76,6 +87,7 @@ public:
 
 	//void blockLine();
 
+	vector<XY> Astar(XY dest);
 	void run();
 	
 };

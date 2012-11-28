@@ -112,8 +112,7 @@ void Bot::printDir(){
 	}
 }
 
-XY Bot::getFront(){
-	int a=pos.a,n=pos.n;
+XY Bot::getFront(int a,int n){
 	switch(dir)
 	{
 	case North: return XY(a+1,n);
@@ -126,8 +125,7 @@ XY Bot::getFront(){
 		break;
 	}
 }
-XY Bot::getBack(){
-	int a=pos.a,n=pos.n;
+XY Bot::getBack(int a,int n){
 	switch(dir)
 	{
 	case North: return XY(a-1,n);
@@ -141,8 +139,7 @@ XY Bot::getBack(){
 	}
 }
 
-XY Bot::getRight(){
-	int a=pos.a,n=pos.n;
+XY Bot::getRight(int a,int n){
 	switch(dir)
 	{
 	case North: return XY(a,n+1);
@@ -155,8 +152,7 @@ XY Bot::getRight(){
 		break;
 	}
 } 
-XY Bot::getLeft(){
-	int a=pos.a,n=pos.n;
+XY Bot::getLeft(int a,int n){
 	switch(dir)
 	{
 	case North: return XY(a,n-1);
@@ -170,8 +166,22 @@ XY Bot::getLeft(){
 	}
 }
 
+XY Bot::getFront(){
+	return getFront( pos.a,pos.n);
+}
+XY Bot::getBack(){
+	return getBack( pos.a,pos.n);
+}
 
-bool Bot::checkFront(){
+XY Bot::getRight(){
+	return getRight( pos.a,pos.n);
+} 
+XY Bot::getLeft(){
+	return getLeft( pos.a,pos.n);
+}
+
+
+bool Bot::checkFront(int a,int n){
 	XY p=getFront();
 	if( map[p.a][p.n] == MAP_WALL ){
 		return false;
@@ -188,7 +198,7 @@ bool Bot::checkFront(){
 	}
 }
 
-bool Bot::checkBack(){
+bool Bot::checkBack(int a,int n){
 	XY p=getBack();
 	if( map[p.a][p.n] == MAP_WALL ){
 		return false;
@@ -205,7 +215,7 @@ bool Bot::checkBack(){
 	}
 }
 
-bool Bot::checkLeft(){
+bool Bot::checkLeft(int a,int n){
 	XY p=getLeft();	
 	if( map[p.a][p.n] == MAP_WALL ){
 		return false;
@@ -222,7 +232,7 @@ bool Bot::checkLeft(){
 	}
 }
 
-bool Bot::checkRight(){
+bool Bot::checkRight(int a,int n){
 	XY p=getRight();
 	
 	if( map[p.a][p.n] == MAP_WALL ){
@@ -238,6 +248,22 @@ bool Bot::checkRight(){
 		map[p.a][p.n]=MAP_WALL;
 		return false;
 	}
+}
+
+bool Bot::checkFront(){
+	return checkFront( pos.a , pos.n );
+}
+
+bool Bot::checkBack(){
+	return checkBack( pos.a , pos.n );
+}
+
+bool Bot::checkLeft(){
+	return checkLeft( pos.a , pos.n );
+}
+
+bool Bot::checkRight(){
+	return checkRight( pos.a , pos.n );
 }
 
 bool Bot::isFrontVisited(){
