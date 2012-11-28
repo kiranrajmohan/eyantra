@@ -16,13 +16,44 @@ Bot::Bot()
 	for( int n=0;n<9;n++){
 		map[0][n]=map[8][n]=1;
 	}
-	map[1][1]=MAP_OPEN;
+	map[1][1]=MAP_VISITED;
 	map[7][7]=MAP_OPEN;
 }
 
 void Bot::turnRight(){	if(dir==West) dir=North; else dir=Directions(dir+1);	} 
 void Bot::turnLeft(){	if(dir==North) dir=West; else dir=Directions(dir-1);	}
 
+void Bot::turnToTrueDir(){
+	if( (pos.n%2)==1 ){ //odd=>north
+		switch(dir)
+		{
+		case South: 
+			turnRight();
+			turnRight();
+			break;
+		case East:  
+			turnLeft();
+			break;
+		case West: 
+			turnRight();
+			break;
+		}
+	}else{
+		switch(dir)
+		{
+		case North: 
+			turnRight();
+			turnRight();
+			break;
+		case East:  
+			turnRight();
+			break;
+		case West: 
+			turnLeft();
+			break;
+		}
+	}
+}
 bool Bot::moveForward(){
 	XY xy=pos;
 	switch(dir)
@@ -40,6 +71,7 @@ bool Bot::moveForward(){
 		return false;
 	}else{
 		pos=xy;
+		map[xy.a][xy.n]=MAP_VISITED;
 		return true;
 	}
 }
@@ -61,6 +93,7 @@ bool Bot::moveBack(){
 		return false;
 	}else{
 		pos=xy;
+		map[xy.a][xy.n]=MAP_VISITED;
 		return true;
 	}
 }
@@ -140,6 +173,12 @@ XY Bot::getLeft(){
 
 bool Bot::checkFront(){
 	XY p=getFront();
+	if( map[p.a][p.n] == MAP_WALL ){
+		return false;
+	}else if( map[p.a][p.n] == MAP_OPEN || map[p.a][p.n] == MAP_VISITED ){
+		return true;
+	}
+
 	if( arena[p.a][p.n] == ARENA_OPEN ){
 		map[p.a][p.n]=MAP_OPEN;
 		return true;
@@ -151,6 +190,12 @@ bool Bot::checkFront(){
 
 bool Bot::checkBack(){
 	XY p=getBack();
+	if( map[p.a][p.n] == MAP_WALL ){
+		return false;
+	}else if( map[p.a][p.n] == MAP_OPEN || map[p.a][p.n] == MAP_VISITED ){
+		return true;
+	}
+
 	if( arena[p.a][p.n] == ARENA_OPEN ){
 		map[p.a][p.n]=MAP_OPEN;
 		return true;
@@ -161,7 +206,13 @@ bool Bot::checkBack(){
 }
 
 bool Bot::checkLeft(){
-	XY p=getLeft();
+	XY p=getLeft();	
+	if( map[p.a][p.n] == MAP_WALL ){
+		return false;
+	}else if( map[p.a][p.n] == MAP_OPEN || map[p.a][p.n] == MAP_VISITED ){
+		return true;
+	}
+
 	if( arena[p.a][p.n] == ARENA_OPEN ){
 		map[p.a][p.n]=MAP_OPEN;
 		return true;
@@ -173,6 +224,13 @@ bool Bot::checkLeft(){
 
 bool Bot::checkRight(){
 	XY p=getRight();
+	
+	if( map[p.a][p.n] == MAP_WALL ){
+		return false;
+	}else if( map[p.a][p.n] == MAP_OPEN || map[p.a][p.n] == MAP_VISITED ){
+		return true;
+	}
+
 	if( arena[p.a][p.n] == ARENA_OPEN ){
 		map[p.a][p.n]=MAP_OPEN;
 		return true;
@@ -182,6 +240,41 @@ bool Bot::checkRight(){
 	}
 }
 
+bool Bot::isFrontVisited(){
+	XY p=getFront();
+	if( map[p.a][p.n]==MAP_VISITED){
+		return true;
+	}else{
+		return false;
+	}
+}
+
+bool Bot::isBackVisited(){
+	XY p=getBack();
+	if( map[p.a][p.n]==MAP_VISITED){
+		return true;
+	}else{
+		return false;
+	}
+}
+
+bool Bot::isLeftVisited(){
+	XY p=getLeft();
+	if( map[p.a][p.n]==MAP_VISITED){
+		return true;
+	}else{
+		return false;
+	}
+}
+
+bool Bot::isRightVisited(){
+	XY p=getRight();
+	if( map[p.a][p.n]==MAP_VISITED){
+		return true;
+	}else{
+		return false;
+	}
+}
 void Bot::printMap()
 {
 	cout<<endl;
@@ -196,8 +289,10 @@ void Bot::printMap()
 				cout<<"* ";
 			}else if( map[a][n] == MAP_WALL ){
 				cout<<char(178)<<" ";
-			}else{
+			}else if( map[a][n] == MAP_OPEN ){
 				cout<<"  ";
+			}else{
+				cout<<char(250)<<" ";
 			}
 		}
 		cout<<endl;
@@ -225,4 +320,90 @@ bool Bot::moveBackAndCheck(){
 	}else{
 		return false;
 	}
+}
+
+bool Bot::checkNextLine(){
+	if( dir == North ){
+		return checkRight();
+	}else if( dir== South ){
+		return checkLeft();
+	}else if( dir== West){
+		return checkBack();
+	}else{
+		return checkFront();
+	}
+}
+
+bool Bot::checkPrevLine(){
+	if( dir == South ){
+		return checkRight();
+	}else if( dir== North ){
+		return checkLeft();
+	}else if( dir== East){
+		return checkBack();
+	}else{
+		return checkFront();
+	}
+}
+
+bool Bot::goToNextLine(){
+	if( checkNextLine() ){
+		if( dir == West ) turnRight();
+
+		if( dir == North ) turnRight();
+		else if( dir== South ) turnLeft();
+
+		moveForward();
+		return true;
+	}else{
+		return false;
+	}
+}
+
+bool Bot::goToPrevLine(){
+	if( checkPrevLine() ){
+		if( dir == West ) turnLeft();
+
+		if( dir == North ) turnLeft();
+		else if( dir== South ) turnRight();
+
+		moveForward();
+		return true;
+	}else{
+		return false;
+	}
+}
+/*
+void Bot::blockLine(){
+	int a=1,n=1;
+	for(n=1;n<7;n++){
+		for(a=1;a<8;a++){
+			if( map[a][n] == MAP_OPEN ||  map[a][n] == UNMAPPED ){
+				return;
+			}
+		} //full line mapped
+		for(a=1;a<8;a++){
+			if( map[a][n+1] == MAP_OPEN ||  map[a][n+1] == UNMAPPED ){
+				return;
+			}
+		} //full line mapped
+		for(a=1;a<9;a++){
+			map[a][n] = MAP_WALL;
+		}
+	}
+}
+*/
+bool Bot::isSuccess(){
+
+	for( int a=1;a<9;a++){
+		for(int n=1;n<9;n++){
+			if( map[a][n] == UNMAPPED || map[a][n] == MAP_OPEN ){
+				cout<<"\nFAILURE! unsuccessful mapping! :( "<<endl;
+				return false;
+			}
+		}
+	}
+	cout<<"\nCongrats! successfully mapped\n";
+	return true;
+
 }

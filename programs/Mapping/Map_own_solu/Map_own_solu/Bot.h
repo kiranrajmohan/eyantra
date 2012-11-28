@@ -5,6 +5,7 @@ using namespace std;
 #define UNMAPPED	0
 #define MAP_WALL	1
 #define MAP_OPEN	2
+#define MAP_VISITED 3
 
 #define ARENA_OPEN	0
 #define ARENA_WALL	1
@@ -34,12 +35,15 @@ public:
 	XY pos;
 	Directions dir;
 
+	
+
 	bool moveForward();
 	bool moveBack();
 	void turnLeft();
 	void turnRight(); 
-	
 
+	void turnToTrueDir();
+	
 	void printDir();
 
 	XY getFront();
@@ -50,11 +54,28 @@ public:
 	bool checkFront();
 	bool checkBack();
 	bool checkLeft();
-	bool checkRight(); 
+	bool checkRight();
+
+	bool isFrontVisited();
+	bool isBackVisited();
+	bool isLeftVisited();
+	bool isRightVisited();
+
+	bool checkNextLine();
+	bool checkPrevLine();
 
 	bool moveForwardAndCheck();
 	bool moveBackAndCheck();
 
+	bool goToNextLine();
+	bool goToPrevLine();
+
 	void printMap();
+
+	bool isSuccess();
+
+	//void blockLine();
+
+	void run();
 	
 };
