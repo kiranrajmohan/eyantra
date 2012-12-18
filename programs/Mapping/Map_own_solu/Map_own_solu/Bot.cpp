@@ -2,29 +2,125 @@
 
 Bot::Bot()
 {
-	pos.a=pos.n=1;
+	cellOnMap=&map[1][1];
 	dir=North;
 	for( int a=0;a<9;a++){
 		for(int n=0;n<8;n++){
-			map[a][n]=0;
+			map[a][n].pos.a=a;
+			map[a][n].pos.n=n;
+		}
+	}
+	for( int a=0;a<9;a++){
+		map[a][0].type=map[a][8].type=MAP_WALL;
+	}
+	for( int n=0;n<9;n++){
+		map[0][n].type=map[8][n].type=MAP_WALL;
+	}
+	map[1][1].type=MAP_VISITED;
+	map[7][7].type=MAP_OPEN;
+}
+
+Bot::Bot( const Bot &b){
+	for( int i=0;i<9; i++){
+		for( int j=0;j<9;j++){
+			map[i][j]=b.map[i][j];
 		}
 	}
 	
-	for( int a=0;a<9;a++){
-		map[a][0]=map[a][8]=1;
-	}
-	for( int n=0;n<9;n++){
-		map[0][n]=map[8][n]=1;
-	}
-	map[1][1]=MAP_VISITED;
-	map[7][7]=MAP_OPEN;
+	cellOnMap=&map[b.cellOnMap->pos.a][b.cellOnMap->pos.n];
+	dir=b.dir;
+}
+
+mapCell* Bot::getMapCell( XY xy)
+{
+	return &map[xy.a][xy.n];
 }
 
 void Bot::turnRight(){	if(dir==West) dir=North; else dir=Directions(dir+1);	} 
 void Bot::turnLeft(){	if(dir==North) dir=West; else dir=Directions(dir-1);	}
 
+Bot::Directions Bot::getLeftDir(){
+	if(dir==North) return West; else return Directions(dir-1);
+}
+
+Bot::Directions Bot::getRightDir(){
+	if(dir==West) return North; else return Directions(dir+1);
+}
+
+Bot::Directions Bot::getBackDir(){
+	if(dir==South) return North; 
+	else if( dir==West ) return East;
+	else return Directions(dir+2);
+}
+
+void Bot::turnNorth(){
+	switch(dir)
+	{
+	case South: 
+		turnRight();
+		turnRight();
+		break;
+	case East:  
+		turnLeft();
+		break;
+	case West: 
+		turnRight();
+		break;
+	}
+}
+
+void Bot::turnSouth(){
+	switch(dir)
+	{
+	case North: 
+		turnRight();
+		turnRight();
+		break;
+	case East:  
+		turnRight();
+		break;
+	case West: 
+		turnLeft();
+		break;
+	}
+}
+
+void Bot::turnEast(){
+	switch(dir)
+	{
+	case West: 
+		turnRight();
+		turnRight();
+		break;
+	case North:  
+		turnRight();
+		break;
+	case South: 
+		turnLeft();
+		break;
+	}
+}
+
+void Bot::turnWest(){
+	switch(dir)
+	{
+	case East: 
+		turnRight();
+		turnRight();
+		break;
+	case South:  
+		turnRight();
+		break;
+	case North: 
+		turnLeft();
+		break;
+	}
+}
+
+
+
 void Bot::turnToTrueDir(){
-	if( (pos.n%2)==1 ){ //odd=>north
+	if( (cellOnMap->pos.n%2)==1 ){ //odd=>north
 		switch(dir)
 		{
 		case South: 
@@ -55,7 +151,7 @@ void Bot::turnToTrueDir(){
 	}
 }
 bool Bot::moveForward(){
-	XY xy=pos;
+	XY xy=cellOnMap->pos;
 	switch(dir)
 	{
 	case North: xy.a++;
@@ -67,17 +163,17 @@ bool Bot::moveForward(){
 	case West:  xy.n--;
 		break;
 	}
-	if( map[xy.a][xy.n] == MAP_WALL){ //can't move, so return false
+	if( map[xy.a][xy.n].type == MAP_WALL){ //can't move, so return false
 		return false;
 	}else{
-		pos=xy;
-		map[xy.a][xy.n]=MAP_VISITED;
+		cellOnMap->pos=xy;
+		map[xy.a][xy.n].type=MAP_VISITED;
 		return true;
 	}
 }
 
 bool Bot::moveBack(){
-	XY xy=pos;
+	XY xy=cellOnMap->pos;
 	switch(dir)
 	{
 	case North: xy.a--;
@@ -89,11 +185,11 @@ bool Bot::moveBack(){
 	case West:  xy.n++;
 		break;
 	}
-	if( map[xy.a][xy.n] == MAP_WALL){ //can't move, so return false
+	if( map[xy.a][xy.n].type == MAP_WALL){ //can't move, so return false
 		return false;
 	}else{
-		pos=xy;
-		map[xy.a][xy.n]=MAP_VISITED;
+		cellOnMap->pos=xy;
+		map[xy.a][xy.n].type=MAP_VISITED;
 		return true;
 	}
 }
@@ -112,163 +208,181 @@ void Bot::printDir(){
 	}
 }
 
-XY Bot::getFront(int a,int n){
+mapCell* Bot::getFront(int a,int n){
 	switch(dir)
 	{
-	case North: return XY(a+1,n);
+	case North: return &map[a+1][n];
 		break;
-	case South: return XY(a-1,n);
+	case South: return &map[a-1][n];
 		break;
-	case East: return XY(a,n+1);
+	case East: return &map[a][n+1];
 		break;
-	case West: return XY(a,n-1);
+	case West: return &map[a][n-1];
 		break;
 	}
 }
-XY Bot::getBack(int a,int n){
+mapCell* Bot::getBack(int a,int n){
 	switch(dir)
 	{
-	case North: return XY(a-1,n);
+	case North: return &map[a-1][n];
 		break;
-	case South: return XY(a+1,n);
+	case South: return &map[a+1][n];
 		break;
-	case East: return XY(a,n-1);
+	case East: return &map[a][n-1];
 		break;
-	case West: return XY(a,n+1);
+	case West: return &map[a][n+1];
 		break;
 	}
 }
 
-XY Bot::getRight(int a,int n){
+mapCell* Bot::getRight(int a,int n){
 	switch(dir)
 	{
-	case North: return XY(a,n+1);
+	case North: return &map[a][n+1];
 		break;
-	case South: return XY(a,n-1);
+	case South: return &map[a][n-1];
 		break;
-	case East: return XY(a-1,n);
+	case East: return &map[a-1][n];
 		break;
-	case West: return XY(a+1,n);
+	case West: return &map[a+1][n];
 		break;
 	}
 } 
-XY Bot::getLeft(int a,int n){
+mapCell* Bot::getLeft(int a,int n){
 	switch(dir)
 	{
-	case North: return XY(a,n-1);
+	case North: return &map[a][n-1];
 		break;
-	case South: return XY(a,n+1);
+	case South: return &map[a][n+1];
 		break;
-	case East: return XY(a+1,n);
+	case East: return &map[a+1][n];
 		break;
-	case West: return XY(a-1,n);
+	case West: return &map[a-1][n];
 		break;
 	}
 }
 
-XY Bot::getFront(){
-	return getFront( pos.a,pos.n);
+mapCell* Bot::getFront(){
+	return getFront( cellOnMap->pos.a,cellOnMap->pos.n);
 }
-XY Bot::getBack(){
-	return getBack( pos.a,pos.n);
+mapCell* Bot::getBack(){
+	return getBack( cellOnMap->pos.a,cellOnMap->pos.n);
 }
 
-XY Bot::getRight(){
-	return getRight( pos.a,pos.n);
+mapCell* Bot::getRight(){
+	return getRight( cellOnMap->pos.a,cellOnMap->pos.n);
 } 
-XY Bot::getLeft(){
-	return getLeft( pos.a,pos.n);
+mapCell* Bot::getLeft(){
+	return getLeft( cellOnMap->pos.a,cellOnMap->pos.n);
+}
+
+bool Bot::check( mapCell* mC){
+
+	if( mC->type == MAP_WALL ){
+		return false;
+	}else if( mC->type == MAP_OPEN || mC->type == MAP_VISITED ){
+		return true;
+	}
+
+	if( arena[mC->pos.a][mC->pos.n] == ARENA_OPEN ){
+		mC->type=MAP_OPEN;
+		return true;
+	}else{
+		mC->type=MAP_WALL;
+		return false;
+	}
+
 }
 
 
 bool Bot::checkFront(int a,int n){
-	XY p=getFront();
-	if( map[p.a][p.n] == MAP_WALL ){
+	mapCell* p=getFront();
+	if( map[p->pos.a][p->pos.n].type == MAP_WALL ){
 		return false;
-	}else if( map[p.a][p.n] == MAP_OPEN || map[p.a][p.n] == MAP_VISITED ){
+	}else if( map[p->pos.a][p->pos.n].type == MAP_OPEN || map[p->pos.a][p->pos.n].type == MAP_VISITED ){
 		return true;
 	}
 
-	if( arena[p.a][p.n] == ARENA_OPEN ){
-		map[p.a][p.n]=MAP_OPEN;
+	if( arena[p->pos.a][p->pos.n] == ARENA_OPEN ){
+		map[p->pos.a][p->pos.n].type=MAP_OPEN;
 		return true;
 	}else{
-		map[p.a][p.n]=MAP_WALL;
+		map[p->pos.a][p->pos.n].type=MAP_WALL;
 		return false;
 	}
 }
 
 bool Bot::checkBack(int a,int n){
-	XY p=getBack();
-	if( map[p.a][p.n] == MAP_WALL ){
+	mapCell* p=getBack();
+	if( map[p->pos.a][p->pos.n].type == MAP_WALL ){
 		return false;
-	}else if( map[p.a][p.n] == MAP_OPEN || map[p.a][p.n] == MAP_VISITED ){
+	}else if( map[p->pos.a][p->pos.n].type == MAP_OPEN || map[p->pos.a][p->pos.n].type == MAP_VISITED ){
 		return true;
 	}
 
-	if( arena[p.a][p.n] == ARENA_OPEN ){
-		map[p.a][p.n]=MAP_OPEN;
+	if( arena[p->pos.a][p->pos.n] == ARENA_OPEN ){
+		map[p->pos.a][p->pos.n].type=MAP_OPEN;
 		return true;
 	}else{
-		map[p.a][p.n]=MAP_WALL;
+		map[p->pos.a][p->pos.n].type=MAP_WALL;
 		return false;
 	}
 }
 
 bool Bot::checkLeft(int a,int n){
-	XY p=getLeft();	
-	if( map[p.a][p.n] == MAP_WALL ){
+	mapCell* p=getLeft();	
+	if( map[p->pos.a][p->pos.n].type == MAP_WALL ){
 		return false;
-	}else if( map[p.a][p.n] == MAP_OPEN || map[p.a][p.n] == MAP_VISITED ){
+	}else if( map[p->pos.a][p->pos.n].type == MAP_OPEN || map[p->pos.a][p->pos.n].type == MAP_VISITED ){
 		return true;
 	}
 
-	if( arena[p.a][p.n] == ARENA_OPEN ){
-		map[p.a][p.n]=MAP_OPEN;
+	if( arena[p->pos.a][p->pos.n]== ARENA_OPEN ){
+		map[p->pos.a][p->pos.n].type=MAP_OPEN;
 		return true;
 	}else{
-		map[p.a][p.n]=MAP_WALL;
+		map[p->pos.a][p->pos.n].type =MAP_WALL;
 		return false;
 	}
 }
 
 bool Bot::checkRight(int a,int n){
-	XY p=getRight();
+	mapCell* p=getRight();
 	
-	if( map[p.a][p.n] == MAP_WALL ){
+	if( map[p->pos.a][p->pos.n].type == MAP_WALL ){
 		return false;
-	}else if( map[p.a][p.n] == MAP_OPEN || map[p.a][p.n] == MAP_VISITED ){
+	}else if( map[p->pos.a][p->pos.n].type == MAP_OPEN || map[p->pos.a][p->pos.n].type == MAP_VISITED ){
 		return true;
 	}
 
-	if( arena[p.a][p.n] == ARENA_OPEN ){
-		map[p.a][p.n]=MAP_OPEN;
+	if( arena[p->pos.a][p->pos.n] == ARENA_OPEN ){
+		map[p->pos.a][p->pos.n].type =MAP_OPEN;
 		return true;
 	}else{
-		map[p.a][p.n]=MAP_WALL;
+		map[p->pos.a][p->pos.n].type =MAP_WALL;
 		return false;
 	}
 }
 
 bool Bot::checkFront(){
-	return checkFront( pos.a , pos.n );
+	return checkFront( cellOnMap->pos.a , cellOnMap->pos.n );
 }
 
 bool Bot::checkBack(){
-	return checkBack( pos.a , pos.n );
+	return checkBack( cellOnMap->pos.a , cellOnMap->pos.n );
 }
 
 bool Bot::checkLeft(){
-	return checkLeft( pos.a , pos.n );
+	return checkLeft( cellOnMap->pos.a , cellOnMap->pos.n );
 }
 
 bool Bot::checkRight(){
-	return checkRight( pos.a , pos.n );
+	return checkRight( cellOnMap->pos.a , cellOnMap->pos.n );
 }
 
 bool Bot::isFrontVisited(){
-	XY p=getFront();
-	if( map[p.a][p.n]==MAP_VISITED){
+	mapCell* p=getFront();
+	if( map[p->pos.a][p->pos.n].type == MAP_VISITED){
 		return true;
 	}else{
 		return false;
@@ -276,8 +390,8 @@ bool Bot::isFrontVisited(){
 }
 
 bool Bot::isBackVisited(){
-	XY p=getBack();
-	if( map[p.a][p.n]==MAP_VISITED){
+	mapCell* p=getBack();
+	if( map[p->pos.a][p->pos.n].type ==MAP_VISITED){
 		return true;
 	}else{
 		return false;
@@ -285,8 +399,8 @@ bool Bot::isBackVisited(){
 }
 
 bool Bot::isLeftVisited(){
-	XY p=getLeft();
-	if( map[p.a][p.n]==MAP_VISITED){
+	mapCell* p=getLeft();
+	if( map[p->pos.a][p->pos.n].type ==MAP_VISITED){
 		return true;
 	}else{
 		return false;
@@ -294,8 +408,8 @@ bool Bot::isLeftVisited(){
 }
 
 bool Bot::isRightVisited(){
-	XY p=getRight();
-	if( map[p.a][p.n]==MAP_VISITED){
+	mapCell* p=getRight();
+	if( map[p->pos.a][p->pos.n].type ==MAP_VISITED){
 		return true;
 	}else{
 		return false;
@@ -304,18 +418,18 @@ bool Bot::isRightVisited(){
 void Bot::printMap()
 {
 	cout<<endl;
-	cout<<"@"<<pos.a<<" "<<pos.n<<"facing";
+	cout<<"@"<<cellOnMap->pos.a<<" "<<cellOnMap->pos.n<<"facing";
 	printDir();
 	cout<<endl;
 	for( int a=8;a>=0;a--){
 		for(int n=0;n<9;n++){
-			if( a==pos.a && n==pos.n){
+			if( a==cellOnMap->pos.a && n==cellOnMap->pos.n){
 				printDir();
-			}else if( map[a][n] == UNMAPPED ){
+			}else if( map[a][n].type == UNMAPPED ){
 				cout<<"* ";
-			}else if( map[a][n] == MAP_WALL ){
+			}else if( map[a][n].type == MAP_WALL ){
 				cout<<char(178)<<" ";
-			}else if( map[a][n] == MAP_OPEN ){
+			}else if( map[a][n].type == MAP_OPEN ){
 				cout<<"  ";
 			}else{
 				cout<<char(250)<<" ";
@@ -323,7 +437,7 @@ void Bot::printMap()
 		}
 		cout<<endl;
 	}
-	cin.get();
+	//cin.get();
 }
 
 bool Bot::moveForwardAndCheck(){
@@ -423,7 +537,7 @@ bool Bot::isSuccess(){
 
 	for( int a=1;a<9;a++){
 		for(int n=1;n<9;n++){
-			if( map[a][n] == UNMAPPED || map[a][n] == MAP_OPEN ){
+			if( map[a][n].type == UNMAPPED || map[a][n].type == MAP_OPEN ){
 				cout<<"\nFAILURE! unsuccessful mapping! :( "<<endl;
 				return false;
 			}

@@ -11,52 +11,77 @@ using namespace std;
 #define ARENA_OPEN	0
 #define ARENA_WALL	1
 
+struct mapCell;
+
 struct XY{
 	XY(){}
 	XY(int _a,int _n){ a=_a; n=_n; }
-
 	int a,n; //alphabet & the number
 };
 
 extern const int arena[9][9];
+struct Acell;
+
+struct mapCell
+{
+	XY pos;
+	bool	isInOpen,
+			isInClosed;
+	Acell* AstarCell;
+	int type;
+
+	mapCell(){
+		isInOpen=isInClosed=false;
+		type=UNMAPPED;
+	}
+};
 
 class Bot
 {
-	int map[9][9];
+	mapCell map[9][9];
 public:
 	Bot();
+	Bot( const Bot &b);
 	enum Directions{
 		North=0,
 		East,
 		South,
 		West
-
 	};
 
-	XY pos;
+	mapCell *cellOnMap;
 	Directions dir;
 
-	
-
+	mapCell* getMapCell( XY xy);
 	bool moveForward();
 	bool moveBack();
 	void turnLeft();
 	void turnRight(); 
 
 	void turnToTrueDir();
+
+	void turnNorth();
+	void turnSouth(); 
+	void turnEast();
+	void turnWest(); 
 	
 	void printDir();
 
-	XY getFront(int a,int n);
-	XY getBack(int a,int n);
-	XY getLeft(int a,int n);
-	XY getRight(int a,int n); 
+	mapCell* getFront(int a,int n);
+	mapCell* getBack(int a,int n);
+	mapCell* getLeft(int a,int n);
+	mapCell* getRight(int a,int n); 
 
-	XY getFront();
-	XY getBack();
-	XY getLeft();
-	XY getRight(); 
+	mapCell* getFront();
+	mapCell* getBack();
+	mapCell* getLeft();
+	mapCell* getRight(); 
 
+	Directions getLeftDir();
+	Directions getRightDir(); 
+	Directions getBackDir();
+
+	bool check( mapCell* mC);
 	bool checkFront(int a,int n);
 	bool checkBack(int a,int n);
 	bool checkLeft(int a,int n);
@@ -87,7 +112,7 @@ public:
 
 	//void blockLine();
 
-	vector<XY> Astar(XY dest);
+	//vector<mapCell*> Astar(mapCell* destCell);
 	void run();
 	
 };
