@@ -54,3 +54,5 @@ _ReSharper*/
 *.sln*
 *.sdf*
 *.ipch*
+model/
+doc/task2/RC45612/Read_Me.txt
