@@ -195,7 +195,7 @@ struct Acell
 	int G, H, F; //cost,heu,total
 	Bot::Directions dir;
 
-	Acell( mapCell* _mC , Acell* &_parent, int cellCost, mapCell* destCell ){
+	Acell( mapCell* _mC , Acell* _parent, int cellCost, mapCell* destCell ){
 		mC=_mC;
 		parent=_parent;
 		mC->AstarCell=this;
